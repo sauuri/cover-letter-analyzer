@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 자소서 분석기</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --accent: #6366f1; --bg: #080c14; --card: #0e1420; --border: #1e2a3a; --text: #c8d8f0; --muted: #4a6080; }
+    body { background: var(--bg); font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; color: var(--text); min-height: 100vh; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 20% 30%, #6366f118 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 70%, #818cf810 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 20px 60px; }
+
+    .hero { text-align: center; padding: 60px 0 40px; }
+    .hero-badge { display: inline-block; background: var(--card); border: 1px solid var(--border); border-radius: 50px; padding: 5px 18px; font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+    .hero-badge span { color: var(--accent); }
+    .hero h1 { font-size: clamp(26px, 5vw, 40px); font-weight: 900; margin-bottom: 10px; }
+    .hero h1 em { font-style: normal; background: linear-gradient(135deg, #6366f1, #818cf8, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 15px; color: var(--muted); }
+
+    .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 20px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.5px; }
+    input[type=text], textarea {
+      width: 100%; background: #060a10; border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px 16px; color: var(--text); font-size: 14px; font-family: inherit;
+      transition: border-color 0.2s; resize: vertical;
+    }
+    input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    textarea { min-height: 220px; line-height: 1.7; }
+    .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
+
+    .btn {
+      width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 14px;
+      color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+    }
+    .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .loading { display: none; text-align: center; padding: 40px; }
+    .loading.show { display: block; }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result { display: none; }
+    .result.show { display: block; }
+
+    .score-card { background: var(--card); border: 1px solid var(--accent)33; border-radius: 20px; padding: 32px; text-align: center; margin-bottom: 16px; }
+    .score-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 16px; background: #6366f110; }
+    .score-num { font-size: 36px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .score-sub { font-size: 11px; color: var(--muted); }
+    .grade-badge { display: inline-block; background: var(--accent)22; border: 1px solid var(--accent)55; border-radius: 50px; padding: 4px 18px; font-size: 18px; font-weight: 900; color: var(--accent); margin-bottom: 12px; }
+    .one-line { font-size: 15px; color: var(--text); }
+
+    .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 600px) { .section-grid { grid-template-columns: 1fr; } }
+
+    .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+    .info-card.full { grid-column: 1 / -1; }
+    .info-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; letter-spacing: 0.5px; }
+    .info-title.green { color: #10b981; }
+    .info-title.red { color: #f43f5e; }
+    .info-title.blue { color: var(--accent); }
+    .info-list { list-style: none; }
+    .info-list li { font-size: 14px; color: var(--text); padding: 8px 0; border-bottom: 1px solid var(--border); line-height: 1.6; display: flex; gap: 8px; }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list li::before { flex-shrink: 0; margin-top: 2px; }
+    .info-list.strength li::before { content: '✓'; color: #10b981; font-weight: 700; }
+    .info-list.weakness li::before { content: '✗'; color: #f43f5e; font-weight: 700; }
+    .info-list.suggestion li::before { content: '→'; color: var(--accent); font-weight: 700; }
+
+    .retry-btn { display: block; width: 100%; padding: 14px; margin-top: 16px; background: transparent; border: 1px solid var(--border); border-radius: 12px; color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+    .retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .error { background: #1a0a10; border: 1px solid #f43f5e44; border-radius: 14px; padding: 16px 20px; color: #f87171; font-size: 14px; display: none; }
+    .error.show { display: block; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-badge">✦ <span>AI</span> · GPT-4o-mini 기반</div>
+    <h1>AI <em>자소서 분석기</em></h1>
+    <p>자소서를 붙여넣으면 강점·약점·개선안을 바로 분석해줘요</p>
+  </div>
+
+  <div class="form-card">
+    <div class="form-group">
+      <label>지원 직무</label>
+      <input type="text" id="position" placeholder="예: 백엔드 개발자, AI 연구원, 마케터...">
+    </div>
+    <div class="form-group">
+      <label>자소서 내용</label>
+      <textarea id="cover-letter" placeholder="분석할 자소서 내용을 붙여넣어 주세요..."></textarea>
+      <div class="char-count"><span id="char-count">0</span>자</div>
+    </div>
+    <button class="btn" id="analyze-btn" onclick="analyze()">분석하기 →</button>
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p style="color:var(--muted);font-size:14px">AI가 자소서를 꼼꼼히 읽는 중...</p>
+  </div>
+
+  <div class="result" id="result">
+    <div class="score-card">
+      <div class="score-circle">
+        <div class="score-num" id="r-score">-</div>
+        <div class="score-sub">/ 100</div>
+      </div>
+      <div class="grade-badge" id="r-grade">-</div>
+      <div class="one-line" id="r-oneline"></div>
+    </div>
+
+    <div class="section-grid">
+      <div class="info-card">
+        <div class="info-title green">강점</div>
+        <ul class="info-list strength" id="r-strengths"></ul>
+      </div>
+      <div class="info-card">
+        <div class="info-title red">약점</div>
+        <ul class="info-list weakness" id="r-weaknesses"></ul>
+      </div>
+      <div class="info-card full">
+        <div class="info-title blue">개선 제안</div>
+        <ul class="info-list suggestion" id="r-suggestions"></ul>
+      </div>
+    </div>
+
+    <button class="retry-btn" onclick="retry()">🔄 다시 분석하기</button>
+  </div>
+</div>
+
+<script>
+  const ta = document.getElementById('cover-letter');
+  ta.addEventListener('input', () => {
+    document.getElementById('char-count').textContent = ta.value.length;
+  });
+
+  async function analyze() {
+    const position = document.getElementById('position').value.trim();
+    const coverLetter = ta.value.trim();
+    const err = document.getElementById('error');
+    err.classList.remove('show');
+
+    if (!position) { showError('지원 직무를 입력해주세요.'); return; }
+    if (coverLetter.length < 50) { showError('자소서 내용을 더 입력해주세요 (최소 50자).'); return; }
+
+    document.getElementById('analyze-btn').disabled = true;
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('result').classList.remove('show');
+
+    try {
+      const res = await fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ position, cover_letter: coverLetter })
+      });
+      if (!res.ok) throw new Error('분석 중 오류가 발생했습니다.');
+      const data = await res.json();
+      showResult(data);
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      document.getElementById('analyze-btn').disabled = false;
+      document.getElementById('loading').classList.remove('show');
+    }
+  }
+
+  function showResult(d) {
+    document.getElementById('r-score').textContent = d.score;
+    document.getElementById('r-grade').textContent = d.grade;
+    document.getElementById('r-oneline').textContent = d.one_line;
+    renderList('r-strengths', d.strengths);
+    renderList('r-weaknesses', d.weaknesses);
+    renderList('r-suggestions', d.suggestions);
+    document.getElementById('result').classList.add('show');
+  }
+
+  function renderList(id, items) {
+    const el = document.getElementById(id);
+    el.innerHTML = (items || []).map(t => `<li>${t}</li>`).join('');
+  }
+
+  function showError(msg) {
+    const err = document.getElementById('error');
+    err.textContent = msg;
+    err.classList.add('show');
+  }
+
+  function retry() {
+    document.getElementById('result').classList.remove('show');
+    document.getElementById('cover-letter').value = '';
+    document.getElementById('position').value = '';
+    document.getElementById('char-count').textContent = '0';
+    document.getElementById('error').classList.remove('show');
+  }
+</script>
+</body>
+</html>
