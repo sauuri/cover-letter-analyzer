@@ -6,87 +6,144 @@
   <title>AI 자소서 분석기</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root { --accent: #6366f1; --bg: #080c14; --card: #0e1420; --border: #1e2a3a; --text: #c8d8f0; --muted: #4a6080; }
+    :root { --accent: #6366f1; --accent2: #818cf8; --bg: #06080f; --card: #0c1018; --border: #1a2436; --text: #c8d8f0; --muted: #4a6080; }
+
     body { background: var(--bg); font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; color: var(--text); min-height: 100vh; }
+
     body::before {
-      content: ''; position: fixed; inset: 0;
-      background: radial-gradient(ellipse at 20% 30%, #6366f118 0%, transparent 50%),
-                  radial-gradient(ellipse at 80% 70%, #818cf810 0%, transparent 50%);
-      pointer-events: none; z-index: 0;
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 10% 20%, #6366f122 0%, transparent 45%),
+        radial-gradient(ellipse at 90% 80%, #818cf814 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 50%, #4f46e508 0%, transparent 60%);
     }
-    .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 20px 60px; }
+    body::after {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: radial-gradient(circle, #1e2a3a 1px, transparent 1px);
+      background-size: 32px 32px; opacity: 0.3;
+    }
 
-    .hero { text-align: center; padding: 60px 0 40px; }
-    .hero-badge { display: inline-block; background: var(--card); border: 1px solid var(--border); border-radius: 50px; padding: 5px 18px; font-size: 12px; color: var(--muted); margin-bottom: 20px; }
-    .hero-badge span { color: var(--accent); }
-    .hero h1 { font-size: clamp(26px, 5vw, 40px); font-weight: 900; margin-bottom: 10px; }
+    .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 20px 80px; }
+
+    /* HERO */
+    .hero { text-align: center; padding: 70px 0 44px; }
+    .hero-icon {
+      width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 24px;
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 0 40px #6366f140;
+    }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 50px; padding: 5px 16px; font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+    .hero-badge span { color: var(--accent); font-weight: 700; }
+    .hero h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 900; letter-spacing: -1px; margin-bottom: 12px; line-height: 1.2; }
     .hero h1 em { font-style: normal; background: linear-gradient(135deg, #6366f1, #818cf8, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .hero p { font-size: 15px; color: var(--muted); }
+    .hero p { font-size: 15px; color: var(--muted); line-height: 1.7; }
 
-    .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 20px; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.5px; }
-    input[type=text], textarea {
-      width: 100%; background: #060a10; border: 1px solid var(--border); border-radius: 12px;
-      padding: 12px 16px; color: var(--text); font-size: 14px; font-family: inherit;
-      transition: border-color 0.2s; resize: vertical;
+    /* FORM */
+    .form-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 36px;
+      margin-bottom: 20px; position: relative; overflow: hidden;
     }
-    input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); }
-    textarea { min-height: 220px; line-height: 1.7; }
-    .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
+    .form-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, #6366f1, transparent);
+    }
+    .form-group { margin-bottom: 22px; }
+    .form-group:last-of-type { margin-bottom: 0; }
+    label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.8px; text-transform: uppercase; }
+    input[type=text], textarea {
+      width: 100%; background: #08101a; border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 13px 16px; color: var(--text); font-size: 14px; font-family: inherit;
+      transition: all 0.2s; resize: vertical;
+    }
+    input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #6366f115; }
+    textarea { min-height: 200px; line-height: 1.75; }
+    .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 6px; }
 
     .btn {
-      width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 14px;
-      color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+      width: 100%; padding: 17px; margin-top: 24px;
+      background: linear-gradient(135deg, #6366f1, #818cf8); border: none; border-radius: 16px;
+      color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.25s;
+      box-shadow: 0 4px 24px #6366f130; letter-spacing: 0.3px;
     }
-    .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 32px #6366f145; }
+    .btn:active { transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    .loading { display: none; text-align: center; padding: 40px; }
+    /* LOADING */
+    .loading { display: none; padding: 48px 0; text-align: center; }
     .loading.show { display: block; }
-    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    .loading-ring { width: 52px; height: 52px; margin: 0 auto 20px; position: relative; }
+    .loading-ring::before, .loading-ring::after {
+      content: ''; position: absolute; inset: 0; border-radius: 50%;
+      border: 3px solid transparent;
+    }
+    .loading-ring::before { border-top-color: var(--accent); animation: spin 1s linear infinite; }
+    .loading-ring::after { border-bottom-color: var(--accent2); animation: spin 1.5s linear infinite reverse; inset: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--muted); font-size: 14px; }
+    .loading-steps { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+    .loading-steps span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); animation: pulse 1.2s ease-in-out infinite; }
+    .loading-steps span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-steps span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse { 0%, 100% { background: var(--border); transform: scale(1); } 50% { background: var(--accent); transform: scale(1.4); } }
 
-    .result { display: none; }
+    /* RESULT */
+    .result { display: none; animation: fadeUp 0.4s ease; }
     .result.show { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-    .score-card { background: var(--card); border: 1px solid var(--accent)33; border-radius: 20px; padding: 32px; text-align: center; margin-bottom: 16px; }
-    .score-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 16px; background: #6366f110; }
-    .score-num { font-size: 36px; font-weight: 900; color: var(--accent); line-height: 1; }
-    .score-sub { font-size: 11px; color: var(--muted); }
-    .grade-badge { display: inline-block; background: var(--accent)22; border: 1px solid var(--accent)55; border-radius: 50px; padding: 4px 18px; font-size: 18px; font-weight: 900; color: var(--accent); margin-bottom: 12px; }
-    .one-line { font-size: 15px; color: var(--text); }
+    .score-card {
+      background: var(--card); border: 1px solid #6366f130; border-radius: 24px; padding: 36px;
+      text-align: center; margin-bottom: 16px; position: relative; overflow: hidden;
+    }
+    .score-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, #6366f1, #818cf8, transparent);
+    }
+    .score-ring-wrap { position: relative; width: 130px; height: 130px; margin: 0 auto 20px; }
+    .score-ring-wrap svg { transform: rotate(-90deg); }
+    .score-track { fill: none; stroke: var(--border); stroke-width: 8; }
+    .score-fill { fill: none; stroke: url(#scoreGrad); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 326; stroke-dashoffset: 326; transition: stroke-dashoffset 1s ease; }
+    .score-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-num { font-size: 38px; font-weight: 900; color: var(--accent); line-height: 1; }
+    .score-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .grade-badge { display: inline-block; background: linear-gradient(135deg, #6366f120, #818cf815); border: 1px solid #6366f145; border-radius: 50px; padding: 6px 22px; font-size: 20px; font-weight: 900; color: var(--accent); margin-bottom: 14px; }
+    .one-line { font-size: 15px; color: var(--text); line-height: 1.6; max-width: 420px; margin: 0 auto; }
 
-    .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
     @media (max-width: 600px) { .section-grid { grid-template-columns: 1fr; } }
 
-    .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+    .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 24px; transition: border-color 0.2s; }
+    .info-card:hover { border-color: #2a3a54; }
     .info-card.full { grid-column: 1 / -1; }
-    .info-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; letter-spacing: 0.5px; }
+    .info-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
     .info-title.green { color: #10b981; }
     .info-title.red { color: #f43f5e; }
     .info-title.blue { color: var(--accent); }
     .info-list { list-style: none; }
-    .info-list li { font-size: 14px; color: var(--text); padding: 8px 0; border-bottom: 1px solid var(--border); line-height: 1.6; display: flex; gap: 8px; }
-    .info-list li:last-child { border-bottom: none; }
-    .info-list li::before { flex-shrink: 0; margin-top: 2px; }
-    .info-list.strength li::before { content: '✓'; color: #10b981; font-weight: 700; }
-    .info-list.weakness li::before { content: '✗'; color: #f43f5e; font-weight: 700; }
-    .info-list.suggestion li::before { content: '→'; color: var(--accent); font-weight: 700; }
+    .info-list li { font-size: 14px; color: var(--text); padding: 10px 0; border-bottom: 1px solid var(--border); line-height: 1.65; display: flex; gap: 10px; }
+    .info-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-list li::before { flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; margin-top: 1px; }
+    .info-list.strength li::before { content: '✓'; background: #10b98118; color: #10b981; border: 1px solid #10b98130; }
+    .info-list.weakness li::before { content: '✗'; background: #f43f5e18; color: #f43f5e; border: 1px solid #f43f5e30; }
+    .info-list.suggestion li::before { content: '→'; background: #6366f118; color: var(--accent); border: 1px solid #6366f130; }
 
-    .retry-btn { display: block; width: 100%; padding: 14px; margin-top: 16px; background: transparent; border: 1px solid var(--border); border-radius: 12px; color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s; }
-    .retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .retry-btn { display: block; width: 100%; padding: 15px; margin-top: 14px; background: transparent; border: 1.5px solid var(--border); border-radius: 14px; color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+    .retry-btn:hover { border-color: var(--accent); color: var(--accent); background: #6366f108; }
 
-    .error { background: #1a0a10; border: 1px solid #f43f5e44; border-radius: 14px; padding: 16px 20px; color: #f87171; font-size: 14px; display: none; }
+    .error { background: #120810; border: 1px solid #f43f5e35; border-radius: 14px; padding: 14px 18px; color: #f87171; font-size: 14px; display: none; margin-bottom: 16px; }
     .error.show { display: block; }
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hero">
-    <div class="hero-badge">✦ <span>AI</span> · GPT-4o-mini 기반</div>
+    <div class="hero-icon">📝</div>
+    <div class="hero-badge">✦ <span>GPT-4o-mini</span> 기반 분석</div>
     <h1>AI <em>자소서 분석기</em></h1>
-    <p>자소서를 붙여넣으면 강점·약점·개선안을 바로 분석해줘요</p>
+    <p>자소서를 붙여넣으면 강점 · 약점 · 개선안을<br>점수와 함께 바로 분석해드려요</p>
   </div>
 
   <div class="form-card">
@@ -99,21 +156,30 @@
       <textarea id="cover-letter" placeholder="분석할 자소서 내용을 붙여넣어 주세요..."></textarea>
       <div class="char-count"><span id="char-count">0</span>자</div>
     </div>
-    <button class="btn" id="analyze-btn" onclick="analyze()">분석하기 →</button>
+    <button class="btn" id="analyze-btn" onclick="analyze()">분석 시작하기 →</button>
   </div>
 
   <div class="error" id="error"></div>
 
   <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <p style="color:var(--muted);font-size:14px">AI가 자소서를 꼼꼼히 읽는 중...</p>
+    <div class="loading-ring"></div>
+    <div class="loading-text">AI가 자소서를 꼼꼼히 분석하는 중...</div>
+    <div class="loading-steps"><span></span><span></span><span></span></div>
   </div>
 
   <div class="result" id="result">
     <div class="score-card">
-      <div class="score-circle">
-        <div class="score-num" id="r-score">-</div>
-        <div class="score-sub">/ 100</div>
+      <svg style="display:none"><defs><linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#a5b4fc"/></linearGradient></defs></svg>
+      <div class="score-ring-wrap">
+        <svg viewBox="0 0 120 120" width="130" height="130">
+          <defs><linearGradient id="scoreGrad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#a5b4fc"/></linearGradient></defs>
+          <circle class="score-track" cx="60" cy="60" r="52"/>
+          <circle class="score-fill" id="score-ring" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="score-inner">
+          <div class="score-num" id="r-score">-</div>
+          <div class="score-sub">/ 100</div>
+        </div>
       </div>
       <div class="grade-badge" id="r-grade">-</div>
       <div class="one-line" id="r-oneline"></div>
@@ -121,15 +187,15 @@
 
     <div class="section-grid">
       <div class="info-card">
-        <div class="info-title green">강점</div>
+        <div class="info-title green">💪 강점</div>
         <ul class="info-list strength" id="r-strengths"></ul>
       </div>
       <div class="info-card">
-        <div class="info-title red">약점</div>
+        <div class="info-title red">⚠️ 약점</div>
         <ul class="info-list weakness" id="r-weaknesses"></ul>
       </div>
       <div class="info-card full">
-        <div class="info-title blue">개선 제안</div>
+        <div class="info-title blue">✨ 개선 제안</div>
         <ul class="info-list suggestion" id="r-suggestions"></ul>
       </div>
     </div>
@@ -182,11 +248,17 @@
     renderList('r-weaknesses', d.weaknesses);
     renderList('r-suggestions', d.suggestions);
     document.getElementById('result').classList.add('show');
+    const circumference = 2 * Math.PI * 52;
+    const offset = circumference - (d.score / 100) * circumference;
+    setTimeout(() => {
+      document.getElementById('score-ring').style.strokeDasharray = circumference;
+      document.getElementById('score-ring').style.strokeDashoffset = offset;
+      document.getElementById('score-ring').style.stroke = 'url(#scoreGrad2)';
+    }, 100);
   }
 
   function renderList(id, items) {
-    const el = document.getElementById(id);
-    el.innerHTML = (items || []).map(t => `<li>${t}</li>`).join('');
+    document.getElementById(id).innerHTML = (items || []).map(t => `<li>${t}</li>`).join('');
   }
 
   function showError(msg) {
@@ -201,6 +273,7 @@
     document.getElementById('position').value = '';
     document.getElementById('char-count').textContent = '0';
     document.getElementById('error').classList.remove('show');
+    document.getElementById('score-ring').style.strokeDashoffset = 326;
   }
 </script>
 </body>
